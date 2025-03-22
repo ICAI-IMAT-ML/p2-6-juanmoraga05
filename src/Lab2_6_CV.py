@@ -1,3 +1,5 @@
+import numpy as np
+
 def cross_validation(model, X, y, nFolds):
     """
     Perform cross-validation on a given machine learning model to evaluate its performance.
@@ -24,7 +26,7 @@ def cross_validation(model, X, y, nFolds):
         The standard deviation of the scores across all cross-validation folds, indicating the variability
         of the score across folds.
 
-    Example:
+    Example:    
     --------
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.datasets import make_classification
@@ -44,26 +46,37 @@ def cross_validation(model, X, y, nFolds):
         # Implement Leave One Out CV
         nFolds = X.shape[0]
 
-    # TODO: Calculate fold_size based on the number of folds
-    fold_size = None
+    # Calculate fold_size based on the number of folds
+    fold_size = X.shape[0] // nFolds
 
-    # TODO: Initialize a list to store the accuracy values of the model for each fold
+    posiciones = np.arange(X.shape[0])
+
+    # Initialize a list to store the accuracy values of the model for each fold
     accuracy_scores = []
 
     for i in range(nFolds):
-        # TODO: Generate indices of samples for the validation set for the fold
-        valid_indices = None
+        inicio_valid = i * fold_size
+        fin_valid = (i + 1) * fold_size
 
-        # TODO: Generate indices of samples for the training set for the fold
-        train_indices = None
+        # Generate indices of samples for the validation set for the fold
+        valid_indices = posiciones[inicio_valid:fin_valid]
 
-        # TODO: Split the dataset into training and validation
-        X_train, X_valid = None, None
-        y_train, y_valid = None, None
+        # Generate indices of samples for the training set for the fold
+        train_indices = np.concatenate((posiciones[:inicio_valid], posiciones[fin_valid:]))
 
-        # TODO: Train the model with the training set
+        # Split the dataset into training and validation
+        X_train, X_valid = X[train_indices], X[valid_indices]
+        y_train, y_valid = y[train_indices], y[valid_indices]
 
-        # TODO: Calculate the accuracy of the model with the validation set and store it in accuracy_scores
+        # Train the model with the training set
+        model.fit(X_train, y_train)
 
-    # TODO: Return the mean and standard deviation of the accuracy_scores
-    return None, None
+        # Calculate the accuracy of the model with the validation set and store it in accuracy_scores
+        y_pred = model.predict(X_valid)
+        accuracy = np.mean(y_pred == y_valid)
+        accuracy_scores.append(accuracy)
+
+    # Return the mean and standard deviation of the accuracy_scores
+    mean_score = np.mean(accuracy_scores)
+    std_score = np.std(accuracy_scores)
+    return mean_score, std_score
